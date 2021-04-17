@@ -1,4 +1,4 @@
-/** `postpublish` will be invoked before publish, return `false` to prevent the publish. */
+/** `prepublish` will be invoked before publish, return `false` to prevent the publish. */
 export async function prepublish(version: string) {
   const readme = await Deno.readTextFile('./README.md')
 
