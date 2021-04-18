@@ -146,6 +146,7 @@ async function main() {
       Deno.execPath(),
       'run',
       '--unstable',
+      '--no-check',
       ...denoFlags,
       ...permissionFlags,
       `https://deno.land/x/${moduleName}@${version}/${command}`,
