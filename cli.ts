@@ -34,6 +34,7 @@ async function main() {
     console.error(resp1.statusText + ':', versionMetaUrl)
     Deno.exit(1)
   }
+
   const { latest, versions } = await resp1.json()
   if (!version) {
     version = latest
@@ -63,7 +64,7 @@ async function main() {
       Deno.exit(1)
     }
     if (version != v) {
-      console.log(dim(`Using version: ${version}`))
+      console.log(dim(`Found version ${version}`))
     }
   }
 
@@ -126,7 +127,7 @@ async function main() {
       if (resp3.status === 200) {
         const list = (await resp3.text()).split('\n').map(l => l.trim()).filter(Boolean).filter(l => !l.startsWith('#'))
         permissionFlags.push(...list)
-        console.log(dim(`Load ${permissionsFile.path.slice(1)}: ${list.join(' ')}`))
+        console.log(dim(`Load permissions: ${list.join(' ')}`))
       }
     }
     if (permissionFlags.length > 0 && !permissionFlags.includes('--prompt')) {
