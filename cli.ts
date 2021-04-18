@@ -127,7 +127,7 @@ async function main() {
       if (resp3.status === 200) {
         const list = (await resp3.text()).split('\n').map(l => l.trim()).filter(Boolean).filter(l => !l.startsWith('#'))
         permissionFlags.push(...list)
-        console.log(dim(`Load permissions: ${list.join(' ')}`))
+        console.log(dim(`Land permissions: ${list.join(' ')}`))
       }
     }
   }
