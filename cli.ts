@@ -130,9 +130,6 @@ async function main() {
         console.log(dim(`Load permissions: ${list.join(' ')}`))
       }
     }
-    if (permissionFlags.length > 0 && !permissionFlags.includes('--prompt')) {
-      permissionFlags.push('--prompt')
-    }
   }
   if (permissionFlags.length === 0) {
     permissionFlags.push('--prompt')
