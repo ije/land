@@ -24,7 +24,9 @@ land aleph init
 By default, `land` use the latest version of the module, you also can specify the version like:
 
 ```bash
-land aleph@0.2 init
+land aleph@0.2.28 init
+land aleph@0.2 init  # match latest patch version
+land aleph@1 init  # match latest minor version
 ```
 
 ### Permissions
@@ -33,4 +35,12 @@ By default, `land` will ask you the permissions of the module is using, or you c
 
 ```bash
 land --allow-net --allow-read --allow-write aleph init
+```
+
+`land` supports `PERMISSIONS(.txt)` preset in the module root directory like:
+
+```txt
+--allow-net
+--allow-read
+--allow-write
 ```
