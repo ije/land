@@ -1,4 +1,6 @@
 import { parse } from 'https://deno.land/std@0.93.0/flags/mod.ts'
+import { dim, bold } from 'https://deno.land/std@0.93.0/fmt/colors.ts'
+import { VERSION } from './version.ts'
 
 const denoPermissionFlags = [
   '-A',
@@ -15,37 +17,63 @@ const denoPermissionFlags = [
 async function main() {
   const { _: args, ...options } = parse(Deno.args.filter(a => !denoPermissionFlags.includes(a)))
   if (args.length == 0) {
-    // todo: print help message
+    console.log(bold('LAND'), VERSION)
+    console.log(dim(`Homepage: `), `https://deno.land/x/land`)
+    console.log(dim(`Repo: `), `https://github.com/postui/land`)
     return
   }
 
-  let [appName, version] = args.shift()!.toString().split('@')
+  let [moduleName, version] = args.shift()!.toString().split('@')
+  const versionMetaUrl = `https://cdn.deno.land/${moduleName}/meta/versions.json`
+  const resp1 = await fetch(versionMetaUrl)
+  if (resp1.status === 404 || resp1.status === 403) {
+    console.error(`Module '${moduleName}' not found`)
+    Deno.exit(1)
+  }
+  if (resp1.status !== 200) {
+    console.error(resp1.statusText + ':', versionMetaUrl)
+    Deno.exit(1)
+  }
+  const { latest, versions } = await resp1.json()
   if (!version) {
-    const versionMetaUrl = `https://cdn.deno.land/${appName}/meta/versions.json`
-    const resp = await fetch(versionMetaUrl)
-    if (resp.status === 404) {
-      console.error(`App '${appName}' not found`)
-      Deno.exit(1)
-    }
-    if (resp.status !== 200) {
-      console.error(resp.statusText + ':', versionMetaUrl)
-      Deno.exit(1)
-    }
-    const { latest } = await resp.json()
     version = latest
+  } else if (!versions.includes(version)) {
+    const v = version
+    if (v.startsWith('v')) {
+      version = v.slice(1)
+    } else {
+      version = 'v' + v
+    }
+    if (!versions.includes(version)) {
+      for (const ver of versions) {
+        if (ver.startsWith(v)) {
+          version = ver
+          break
+        } else if (v.startsWith('v') && ver.startsWith(v.slice(1))) {
+          version = ver
+          break
+        } else if (!v.startsWith('v') && ver.startsWith('v' + v)) {
+          version = ver
+          break
+        }
+      }
+    }
+    if (!versions.includes(version)) {
+      console.error(`Version '${v}' not found`)
+      Deno.exit(1)
+    }
+    if (version != v) {
+      console.log(dim(`Using version: ${version}`))
+    }
   }
 
-  const metaUrl = `https://cdn.deno.land/${appName}/versions/${version}/meta/meta.json`
-  const resp = await fetch(metaUrl)
-  if (resp.status === 404) {
-    console.error(`App '${appName}' not found`)
+  const metaUrl = `https://cdn.deno.land/${moduleName}/versions/${version}/meta/meta.json`
+  const resp2 = await fetch(metaUrl)
+  if (resp2.status !== 200) {
+    console.error(resp2.statusText)
     Deno.exit(1)
   }
-  if (resp.status !== 200) {
-    console.error(resp.statusText)
-    Deno.exit(1)
-  }
-  const { directory_listing } = await resp.json()
+  const { directory_listing } = await resp2.json()
 
   let command: string | null = null
   let importMap: string | null = null
@@ -97,7 +125,7 @@ async function main() {
     denoFlags.push(`--location=http://0.0.0.0`)
   }
   if (importMap !== null) {
-    denoFlags.push(`--import-map=https://deno.land/x/${appName}@${version}/${importMap}`)
+    denoFlags.push(`--import-map=https://deno.land/x/${moduleName}@${version}/${importMap}`)
   }
 
   const cmd = Deno.run({
@@ -107,7 +135,7 @@ async function main() {
       '--unstable',
       ...denoFlags,
       ...permissionFlags,
-      `https://deno.land/x/${appName}@${version}/${command}`,
+      `https://deno.land/x/${moduleName}@${version}/${command}`,
       ...args.map(a => a.toString()),
       ...appFlags
     ],
