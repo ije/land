@@ -5,7 +5,7 @@ Run Deno X module without installation.
 ### Installation
 
 ```bash
-deno install --allow-net --allow-read --allow-run -n land https://deno.land/x/land@v0.4.3/cli.ts
+deno install --allow-net --allow-read --allow-run -f -n land https://deno.land/x/land@v0.4.4/cli.ts
 ```
 
 ### Usage
