@@ -1,5 +1,6 @@
 import { parse } from 'https://deno.land/std@0.93.0/flags/mod.ts'
 import { dim, bold } from 'https://deno.land/std@0.93.0/fmt/colors.ts'
+import { cache } from 'https://deno.land/x/cache@0.2.12/cache.ts'
 import { VERSION } from './version.ts'
 
 const denoPermissionFlags = [
@@ -68,13 +69,8 @@ async function main() {
     }
   }
 
-  const metaUrl = `https://cdn.deno.land/${moduleName}/versions/${version}/meta/meta.json`
-  const resp2 = await fetch(metaUrl)
-  if (resp2.status !== 200) {
-    console.error(resp2.statusText)
-    Deno.exit(1)
-  }
-  const { directory_listing } = await resp2.json()
+  const file = await cache(`https://cdn.deno.land/${moduleName}/versions/${version}/meta/meta.json`)
+  const { directory_listing } = JSON.parse(await Deno.readTextFile(file.path))
 
   let command: string | null = null
   let importMap: string | null = null
@@ -122,13 +118,11 @@ async function main() {
   if (permissionFlags.length === 0) {
     const permissionsFile = directory_listing.find((entry: any) => entry.type === 'file' && (entry.path === `/PERMISSIONS` || entry.path === `/PERMISSIONS.txt`))
     if (permissionsFile) {
-      const url = `https://cdn.deno.land/${moduleName}/versions/${version}/raw${permissionsFile.path}`
-      const resp3 = await fetch(url)
-      if (resp3.status === 200) {
-        const list = (await resp3.text()).split('\n').map(l => l.trim()).filter(Boolean).filter(l => !l.startsWith('#'))
-        permissionFlags.push(...list)
-        console.log(dim(`Land permissions: ${list.join(' ')}`))
-      }
+      const file = await cache(`https://cdn.deno.land/${moduleName}/versions/${version}/raw${permissionsFile.path}`)
+      const text = await Deno.readTextFile(file.path)
+      const list = text.split('\n').map(l => l.trim()).filter(Boolean).filter(l => !l.startsWith('#'))
+      permissionFlags.push(...list)
+      console.log(dim(`Land permissions: ${list.join(' ')}`))
     }
   }
   if (permissionFlags.length === 0) {
