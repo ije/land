@@ -5,7 +5,7 @@ Run Deno X module without installation.
 ### Installation
 
 ```bash
-deno install -A -f -n land https://deno.land/x/land@v0.5.1/cli.ts
+deno install -A -f -n land https://deno.land/x/land@v0.5.2/cli.ts
 ```
 
 ### Usage
