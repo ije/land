@@ -13,7 +13,7 @@ const denoPermissionFlags = [
 ]
 
 async function main() {
-  const { _: args, ...options } = parse(Deno.args)
+  const { _: args, ...options } = parse(Deno.args.filter(a => !denoPermissionFlags.includes(a)))
   if (args.length == 0) {
     // todo: print help message
     return
@@ -70,21 +70,24 @@ async function main() {
   const permissionFlags: string[] = []
   const denoFlags: string[] = []
   const appFlags: string[] = []
+  for (const f of Deno.args) {
+    if (denoPermissionFlags.includes(f)) {
+      permissionFlags.push(f)
+    }
+  }
   for (const key of Object.keys(options)) {
     const value = options[key]
-    const rawKey = (key.length === 1 ? '-' : '--') + key
-    if (denoPermissionFlags.includes(rawKey)) {
-      permissionFlags.push(rawKey)
-    } else if (['-r', '--reload', '--no-check'].includes(rawKey)) {
-      denoFlags.push(rawKey)
-    } else if (rawKey === '--location') {
-      denoFlags.push(`--location=${value}`)
+    const flagKey = (key.length === 1 ? '-' : '--') + key
+    if (flagKey === '--location' && typeof value === 'string') {
+      try {
+        const url = new URL(value)
+        denoFlags.push(`--location=${url.toString()}`)
+      } catch (error) { }
+    }
+    if (value && value !== true) {
+      appFlags.push(`${flagKey}=${value}`)
     } else {
-      if (value && value !== true) {
-        appFlags.push(`${rawKey}=${value}`)
-      } else {
-        appFlags.push(rawKey)
-      }
+      appFlags.push(flagKey)
     }
   }
   if (permissionFlags.length === 0) {
