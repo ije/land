@@ -124,9 +124,13 @@ async function main() {
       const url = `https://cdn.deno.land/${moduleName}/versions/${version}/raw${permissionsFile.path}`
       const resp3 = await fetch(url)
       if (resp3.status === 200) {
-        const list = await resp3.text()
-        permissionFlags.push(...list.split('\n').map(l => l.trim()).filter(Boolean))
+        const list = (await resp3.text()).split('\n').map(l => l.trim()).filter(Boolean).filter(l => !l.startsWith('#'))
+        permissionFlags.push(...list)
+        console.log(dim(`Load ${permissionsFile.path.slice(1)}: ${list.join(' ')}`))
       }
+    }
+    if (permissionFlags.length > 0 && !permissionFlags.includes('--prompt')) {
+      permissionFlags.push('--prompt')
     }
   }
   if (permissionFlags.length === 0) {
