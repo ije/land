@@ -119,6 +119,17 @@ async function main() {
     }
   }
   if (permissionFlags.length === 0) {
+    const permissionsFile = directory_listing.find((entry: any) => entry.type === 'file' && (entry.path === `/PERMISSIONS` || entry.path === `/PERMISSIONS.txt`))
+    if (permissionsFile) {
+      const url = `https://cdn.deno.land/${moduleName}/versions/${version}/raw${permissionsFile.path}`
+      const resp3 = await fetch(url)
+      if (resp3.status === 200) {
+        const list = await resp3.text()
+        permissionFlags.push(...list.split('\n').map(l => l.trim()).filter(Boolean))
+      }
+    }
+  }
+  if (permissionFlags.length === 0) {
     permissionFlags.push('--prompt')
   }
   if (!denoFlags.some(f => f.startsWith('--location='))) {
