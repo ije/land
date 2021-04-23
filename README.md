@@ -11,7 +11,7 @@ deno install -A -f -n land https://deno.land/x/land@v0.6.0/cli.ts
 ### Usage
 
 ```bash
-# deno run --prompt https://deno.land/x/aleph/cli.ts init
+# deno run https://deno.land/x/aleph@latest/cli.ts init
 land aleph init
 ```
 
