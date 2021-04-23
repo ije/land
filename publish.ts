@@ -1,4 +1,5 @@
-/** `prepublish` will be invoked before publish, return `false` to prevent the publish. */
+// custom script for https://deno.land/x/publish
+
 export async function prepublish(version: string) {
   const readme = await Deno.readTextFile('./README.md')
 
@@ -8,7 +9,6 @@ export async function prepublish(version: string) {
   ))
 }
 
-/** `postpublish` will be invoked after published. */
 export async function postpublish(version: string) {
   console.log('Upgraded to', version)
 }
