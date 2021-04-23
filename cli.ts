@@ -1,5 +1,5 @@
-import { parse } from 'https://deno.land/std@0.93.0/flags/mod.ts'
-import { dim, bold } from 'https://deno.land/std@0.93.0/fmt/colors.ts'
+import { parse } from 'https://deno.land/std@0.94.0/flags/mod.ts'
+import { dim, bold } from 'https://deno.land/std@0.94.0/fmt/colors.ts'
 import { cache } from 'https://deno.land/x/cache@0.2.12/cache.ts'
 import { VERSION } from './version.ts'
 
@@ -120,9 +120,14 @@ async function main() {
     if (permissionsFile) {
       const file = await cache(`https://cdn.deno.land/${moduleName}/versions/${version}/raw${permissionsFile.path}`)
       const text = await Deno.readTextFile(file.path)
-      const list = text.split('\n').map(l => l.trim()).filter(Boolean).filter(l => !l.startsWith('#'))
+      const list = text.split('\n').map(line => {
+        const value = line.trim()
+        return denoPermissionFlags.find(p => value === p || '--' + value === p) || ''
+      }).filter(Boolean)
       permissionFlags.push(...list)
-      console.log(dim(`Land permissions: ${list.join(' ')}`))
+      if (permissionFlags.length > 0) {
+        console.log(dim(`Land Permissions: ${list.join(' ')}`))
+      }
     }
   }
   if (permissionFlags.length === 0) {
@@ -140,7 +145,6 @@ async function main() {
       Deno.execPath(),
       'run',
       '--unstable',
-      '--no-check',
       ...denoFlags,
       ...permissionFlags,
       `https://deno.land/x/${moduleName}@${version}/${command}`,
