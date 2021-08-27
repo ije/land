@@ -1,6 +1,6 @@
-import { parse } from 'https://deno.land/std@0.94.0/flags/mod.ts'
-import { dim, bold } from 'https://deno.land/std@0.94.0/fmt/colors.ts'
-import { cache } from 'https://deno.land/x/cache@0.2.12/cache.ts'
+import { parse } from 'https://deno.land/std@0.100.0/flags/mod.ts'
+import { dim, bold } from 'https://deno.land/std@0.100.0/fmt/colors.ts'
+import { cache } from 'https://deno.land/x/cache@0.2.13/cache.ts'
 import { VERSION } from './version.ts'
 
 const denoPermissionFlags = [
@@ -9,7 +9,6 @@ const denoPermissionFlags = [
   '--allow-env',
   '--allow-hrtime',
   '--allow-net',
-  '--allow-plugin',
   '--allow-read',
   '--allow-run',
   '--allow-write',
