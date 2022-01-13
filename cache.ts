@@ -1,20 +1,20 @@
-import { ensureDir } from 'https://deno.land/std@0.120.0/fs/ensure_dir.ts'
-import { createHash } from 'https://deno.land/std@0.120.0/hash/mod.ts'
-import { join } from 'https://deno.land/std@0.120.0/path/mod.ts'
+import { ensureDir } from "https://deno.land/std@0.120.0/fs/ensure_dir.ts"
+import { createHash } from "https://deno.land/std@0.120.0/hash/mod.ts"
+import { join } from "https://deno.land/std@0.120.0/path/mod.ts"
 
 /** download and cache remote contents */
 export async function cache(url: string, options?: { forceRefresh?: boolean, retryTimes?: number }): Promise<{ content: Uint8Array, contentType: string | null }> {
   const { protocol, hostname, port, pathname, search } = new URL(url)
-  const isLocalhost = ['localhost', '0.0.0.0', '127.0.0.1'].includes(hostname)
+  const isLocalhost = ["localhost", "0.0.0.0", "127.0.0.1"].includes(hostname)
   const cacheDir = join(
     await getDenoDir(),
-    'deps',
-    protocol.replace(':', ''),
-    hostname + (port ? '_PORT' + port : '')
+    "deps",
+    protocol.replace(":", ""),
+    hostname + (port ? "_PORT" + port : "")
   )
-  const hashname = createHash('sha256').update(pathname + search).toString()
+  const hashname = createHash("sha256").update(pathname + search).toString()
   const contentFilepath = join(cacheDir, hashname)
-  const metaFilepath = join(cacheDir, hashname + '.metadata.json')
+  const metaFilepath = join(cacheDir, hashname + ".metadata.json")
 
   if (!options?.forceRefresh && !isLocalhost && await existsFile(contentFilepath) && await existsFile(metaFilepath)) {
     const [content, meta] = await Promise.all([
@@ -25,13 +25,13 @@ export async function cache(url: string, options?: { forceRefresh?: boolean, ret
       const { headers = {} } = JSON.parse(meta)
       return {
         content,
-        contentType: headers['content-type'] || null
+        contentType: headers["content-type"] || null
       }
     } catch (e) { }
   }
 
   const retryTimes = options?.retryTimes || 3
-  let err = new Error('Unknown')
+  let err = new Error("Unknown")
   for (let i = 0; i < retryTimes; i++) {
     try {
       const resp = await fetch(url)
@@ -52,7 +52,7 @@ export async function cache(url: string, options?: { forceRefresh?: boolean, ret
       }
       return {
         content,
-        contentType: resp.headers.get('content-type')
+        contentType: resp.headers.get("content-type")
       }
     } catch (e) {
       err = e
@@ -65,15 +65,15 @@ export async function cache(url: string, options?: { forceRefresh?: boolean, ret
 /** get the deno cache dir. */
 export async function getDenoDir() {
   const p = Deno.run({
-    cmd: [Deno.execPath(), 'info', '--json'],
-    stdout: 'piped',
-    stderr: 'null'
+    cmd: [Deno.execPath(), "info", "--json"],
+    stdout: "piped",
+    stderr: "null"
   })
   const output = new TextDecoder().decode(await p.output())
   const { denoDir } = JSON.parse(output)
   p.close()
   if (denoDir === undefined || !await existsDir(denoDir)) {
-    throw new Error(`can't find the deno dir`)
+    throw new Error(`can"t find the deno dir`)
   }
   return denoDir
 }

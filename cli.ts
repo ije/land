@@ -1,38 +1,38 @@
-import { parse } from 'https://deno.land/std@0.120.0/flags/mod.ts'
-import { dim, bold } from 'https://deno.land/std@0.120.0/fmt/colors.ts'
-import { cache } from './cache.ts'
-import { VERSION } from './version.ts'
+import { parse } from "https://deno.land/std@0.120.0/flags/mod.ts"
+import { dim, bold } from "https://deno.land/std@0.120.0/fmt/colors.ts"
+import { cache } from "./cache.ts"
+import { VERSION } from "./version.ts"
 
 const denoPermissionFlags = [
-  '-A',
-  '--allow-all',
-  '--allow-env',
-  '--allow-hrtime',
-  '--allow-net',
-  '--allow-read',
-  '--allow-write',
-  '--allow-run',
-  '--allow-ffi',
+  "-A",
+  "--allow-all",
+  "--allow-env",
+  "--allow-hrtime",
+  "--allow-net",
+  "--allow-read",
+  "--allow-write",
+  "--allow-run",
+  "--allow-ffi",
 ]
 
 async function main() {
   const { _: args, ...options } = parse(Deno.args.filter(a => !denoPermissionFlags.includes(a)))
   if (args.length == 0) {
-    console.log(bold('LAND'), VERSION)
+    console.log(bold("LAND"), VERSION)
     console.log(dim(`Homepage: `), `https://deno.land/x/land`)
     console.log(dim(`Repo: `), `https://github.com/postui/land`)
     return
   }
 
-  let [moduleName, version] = args.shift()!.toString().split('@')
+  let [moduleName, version] = args.shift()!.toString().split("@")
   const versionMetaUrl = `https://cdn.deno.land/${moduleName}/meta/versions.json`
   const resp1 = await fetch(versionMetaUrl)
   if (resp1.status === 404 || resp1.status === 403) {
-    console.error(`Module '${moduleName}' not found`)
+    console.error(`Module "${moduleName}" not found`)
     Deno.exit(1)
   }
   if (resp1.status !== 200) {
-    console.error(resp1.statusText + ':', versionMetaUrl)
+    console.error(resp1.statusText + ":", versionMetaUrl)
     Deno.exit(1)
   }
 
@@ -41,27 +41,27 @@ async function main() {
     version = latest
   } else if (!versions.includes(version)) {
     const v = version
-    if (v.startsWith('v')) {
+    if (v.startsWith("v")) {
       version = v.slice(1)
     } else {
-      version = 'v' + v
+      version = "v" + v
     }
     if (!versions.includes(version)) {
       for (const ver of versions) {
         if (ver.startsWith(v)) {
           version = ver
           break
-        } else if (v.startsWith('v') && ver.startsWith(v.slice(1))) {
+        } else if (v.startsWith("v") && ver.startsWith(v.slice(1))) {
           version = ver
           break
-        } else if (!v.startsWith('v') && ver.startsWith('v' + v)) {
+        } else if (!v.startsWith("v") && ver.startsWith("v" + v)) {
           version = ver
           break
         }
       }
     }
     if (!versions.includes(version)) {
-      console.error(`Version '${v}' not found`)
+      console.error(`Version "${v}" not found`)
       Deno.exit(1)
     }
     if (version != v) {
@@ -74,14 +74,14 @@ async function main() {
 
   let command: string | null = null
   let importMap: string | null = null
-  for (const name of ['cli.ts', 'cli.js', 'mod.ts', 'mod.js']) {
-    if (directory_listing.some((entry: any) => entry.type === 'file' && entry.path === `/${name}`)) {
+  for (const name of ["cli.ts", "cli.js", "mod.ts", "mod.js"]) {
+    if (directory_listing.some((entry: any) => entry.type === "file" && entry.path === `/${name}`)) {
       command = name
       break
     }
   }
-  for (const filename of Array.from(['import_map', 'import-map', 'importMap', 'importmap']).map(name => `${name}.json`)) {
-    if (directory_listing.some((entry: any) => entry.type === 'file' && entry.path === `/${filename}`)) {
+  for (const filename of Array.from(["import_map", "import-map", "importMap", "importmap"]).map(name => `${name}.json`)) {
+    if (directory_listing.some((entry: any) => entry.type === "file" && entry.path === `/${filename}`)) {
       importMap = filename
       break
     }
@@ -102,8 +102,8 @@ async function main() {
   }
   for (const key of Object.keys(options)) {
     const value = options[key]
-    const flagKey = (key.length === 1 ? '-' : '--') + key
-    if (flagKey === '--location' && typeof value === 'string') {
+    const flagKey = (key.length === 1 ? "-" : "--") + key
+    if (flagKey === "--location" && typeof value === "string") {
       try {
         const url = new URL(value)
         denoFlags.push(`--location=${url.toString()}`)
@@ -116,24 +116,24 @@ async function main() {
     }
   }
   if (permissionFlags.length === 0) {
-    const permissionsFile = directory_listing.find((entry: any) => entry.type === 'file' && (entry.path === `/PERMISSIONS` || entry.path === `/PERMISSIONS.txt`))
+    const permissionsFile = directory_listing.find((entry: any) => entry.type === "file" && (entry.path === `/PERMISSIONS` || entry.path === `/PERMISSIONS.txt`))
     if (permissionsFile) {
       const { content } = await cache(`https://cdn.deno.land/${moduleName}/versions/${version}/raw${permissionsFile.path}`)
       const text = new TextDecoder().decode(content)
-      const list = text.split('\n').map(line => {
+      const list = text.split("\n").map(line => {
         const value = line.trim()
-        return denoPermissionFlags.find(p => value === p || '--' + value === p) || ''
+        return denoPermissionFlags.find(p => value === p || "--" + value === p) || ""
       }).filter(Boolean)
       permissionFlags.push(...list)
       if (permissionFlags.length > 0) {
-        console.log(dim(`Land Permissions: ${list.join(' ')}`))
+        console.log(dim(`Land Permissions: ${list.join(" ")}`))
       }
     }
   }
   if (permissionFlags.length === 0) {
-    permissionFlags.push('--prompt')
+    permissionFlags.push("--prompt")
   }
-  if (!denoFlags.some(f => f.startsWith('--location='))) {
+  if (!denoFlags.some(f => f.startsWith("--location="))) {
     denoFlags.push(`--location=http://0.0.0.0`)
   }
   if (importMap !== null) {
@@ -143,16 +143,17 @@ async function main() {
   const cmd = Deno.run({
     cmd: [
       Deno.execPath(),
-      'run',
-      '--unstable',
+      "run",
+      "--unstable",
       ...denoFlags,
       ...permissionFlags,
       `https://deno.land/x/${moduleName}@${version}/${command}`,
       ...args.map(a => a.toString()),
       ...appFlags
     ],
-    stdin: 'inherit',
-    stdout: 'inherit',
+    stdin: "inherit",
+    stdout: "inherit",
+    stderr: "inherit",
   })
   await cmd.status()
   cmd.close()
