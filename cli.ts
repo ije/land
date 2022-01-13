@@ -1,6 +1,6 @@
-import { parse } from 'https://deno.land/std@0.100.0/flags/mod.ts'
-import { dim, bold } from 'https://deno.land/std@0.100.0/fmt/colors.ts'
-import { cache } from 'https://deno.land/x/cache@0.2.13/cache.ts'
+import { parse } from 'https://deno.land/std@0.120.0/flags/mod.ts'
+import { dim, bold } from 'https://deno.land/std@0.120.0/fmt/colors.ts'
+import { cache } from './cache.ts'
 import { VERSION } from './version.ts'
 
 const denoPermissionFlags = [
@@ -10,8 +10,9 @@ const denoPermissionFlags = [
   '--allow-hrtime',
   '--allow-net',
   '--allow-read',
-  '--allow-run',
   '--allow-write',
+  '--allow-run',
+  '--allow-ffi',
 ]
 
 async function main() {
@@ -68,8 +69,8 @@ async function main() {
     }
   }
 
-  const file = await cache(`https://cdn.deno.land/${moduleName}/versions/${version}/meta/meta.json`)
-  const { directory_listing } = JSON.parse(await Deno.readTextFile(file.path))
+  const { content } = await cache(`https://cdn.deno.land/${moduleName}/versions/${version}/meta/meta.json`)
+  const { directory_listing } = JSON.parse(new TextDecoder().decode(content))
 
   let command: string | null = null
   let importMap: string | null = null
@@ -117,8 +118,8 @@ async function main() {
   if (permissionFlags.length === 0) {
     const permissionsFile = directory_listing.find((entry: any) => entry.type === 'file' && (entry.path === `/PERMISSIONS` || entry.path === `/PERMISSIONS.txt`))
     if (permissionsFile) {
-      const file = await cache(`https://cdn.deno.land/${moduleName}/versions/${version}/raw${permissionsFile.path}`)
-      const text = await Deno.readTextFile(file.path)
+      const { content } = await cache(`https://cdn.deno.land/${moduleName}/versions/${version}/raw${permissionsFile.path}`)
+      const text = new TextDecoder().decode(content)
       const list = text.split('\n').map(line => {
         const value = line.trim()
         return denoPermissionFlags.find(p => value === p || '--' + value === p) || ''

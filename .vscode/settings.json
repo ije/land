@@ -5,12 +5,8 @@
   "typescript.preferences.quoteStyle": "single",
    "[typescript]": {
     "editor.defaultFormatter": "vscode.typescript-language-features",
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": true,
-    }
+    "editor.formatOnSave": true
   },
   "deno.enable": true,
-  "deno.unstable": true,
-  "deno.importMap": "./import_map.json"
+  "deno.unstable": true
 }
