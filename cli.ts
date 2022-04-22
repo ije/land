@@ -1,26 +1,31 @@
-import { parse } from "https://deno.land/std@0.127.0/flags/mod.ts";
-import { bold, dim } from "https://deno.land/std@0.127.0/fmt/colors.ts";
+import { parse } from "https://deno.land/std@0.136.0/flags/mod.ts";
+import { bold, dim } from "https://deno.land/std@0.136.0/fmt/colors.ts";
 import { cache } from "./cache.ts";
 import { VERSION } from "./version.ts";
+
+type DirEntry = {
+  type: string;
+  path: string;
+};
 
 const denoPermissionFlags = [
   "-A",
   "--allow-all",
   "--allow-env",
+  "--allow-ffi",
   "--allow-hrtime",
   "--allow-net",
   "--allow-read",
-  "--allow-write",
   "--allow-run",
-  "--allow-ffi",
+  "--allow-write",
 ];
 
-const supportedModuleExt = [
-  ".tsx",
+const supportedModuleExts = [
   ".ts",
+  ".tsx",
   ".mts",
-  ".jsx",
   ".js",
+  ".jsx",
   ".mjs",
 ];
 
@@ -30,8 +35,8 @@ async function main() {
   );
   if (args.length == 0) {
     console.log(bold("LAND"), VERSION);
-    console.log(dim(`Homepage: `), `https://deno.land/x/land`);
-    console.log(dim(`Repo: `), `https://github.com/postui/land`);
+    console.log(dim("Homepage: "), "https://deno.land/x/land");
+    console.log(dim("Repo: "), "https://github.com/postui/land");
     return;
   }
 
@@ -90,11 +95,11 @@ async function main() {
   let importMap: string | null = null;
   for (
     const name of ["cli", "main", "mod"].map((name) =>
-      supportedModuleExt.map((ext) => `${name}${ext}`)
+      supportedModuleExts.map((ext) => `${name}${ext}`)
     ).flat()
   ) {
     if (
-      directory_listing.some((entry: any) =>
+      directory_listing.some((entry: DirEntry) =>
         entry.type === "file" && entry.path === `/${name}`
       )
     ) {
@@ -111,7 +116,7 @@ async function main() {
     ]).map((name) => `${name}.json`)
   ) {
     if (
-      directory_listing.some((entry: any) =>
+      directory_listing.some((entry: DirEntry) =>
         entry.type === "file" && entry.path === `/${filename}`
       )
     ) {
@@ -140,7 +145,9 @@ async function main() {
       try {
         const url = new URL(value);
         denoFlags.push(`--location=${url.toString()}`);
-      } catch (error) {}
+      } catch (_e) {
+        // ignore
+      }
     }
     if (value && value !== true) {
       appFlags.push(`${flagKey}=${value}`);
@@ -149,7 +156,7 @@ async function main() {
     }
   }
   if (permissionFlags.length === 0) {
-    const permissionsFile = directory_listing.find((entry: any) =>
+    const permissionsFile = directory_listing.find((entry: DirEntry) =>
       entry.type === "file" &&
       (entry.path === `/PERMISSIONS` || entry.path === `/PERMISSIONS.txt`)
     );

@@ -1,13 +1,12 @@
-import { ensureDir } from "https://deno.land/std@0.127.0/fs/ensure_dir.ts";
-import { join } from "https://deno.land/std@0.127.0/path/mod.ts";
+import { ensureDir } from "https://deno.land/std@0.136.0/fs/ensure_dir.ts";
+import { join } from "https://deno.land/std@0.136.0/path/mod.ts";
 
 /** download and cache remote contents */
 export async function cache(
   url: string,
-  options?: { forceRefresh?: boolean; retryTimes?: number },
 ): Promise<{ content: Uint8Array; contentType: string | null }> {
   const { protocol, hostname, port, pathname, search } = new URL(url);
-  const isLocalhost = ["localhost", "0.0.0.0", "127.0.0.1"].includes(hostname);
+  const isLocalhost = ["0.0.0.0", "127.0.0.1", "localhost"].includes(hostname);
   const cacheDir = join(
     await getDenoDir(),
     "deps",
@@ -24,8 +23,9 @@ export async function cache(
   const metaFilepath = join(cacheDir, hashname + ".metadata.json");
 
   if (
-    !options?.forceRefresh && !isLocalhost &&
-    await existsFile(contentFilepath) && await existsFile(metaFilepath)
+    !isLocalhost &&
+    await existsFile(contentFilepath) &&
+    await existsFile(metaFilepath)
   ) {
     const [content, meta] = await Promise.all([
       Deno.readFile(contentFilepath),
@@ -37,10 +37,12 @@ export async function cache(
         content,
         contentType: headers["content-type"] || null,
       };
-    } catch (e) {}
+    } catch (_e) {
+      // ignore
+    }
   }
 
-  const retryTimes = options?.retryTimes || 3;
+  const retryTimes = 3;
   let err = new Error("Unknown");
   for (let i = 0; i < retryTimes; i++) {
     try {
@@ -57,11 +59,17 @@ export async function cache(
           headers[key] = val;
         });
         await ensureDir(cacheDir);
-        Deno.writeFile(contentFilepath, content);
-        Deno.writeTextFile(
-          metaFilepath,
-          JSON.stringify({ headers, url }, undefined, 2),
-        );
+        await Promise.all([
+          Deno.writeFile(contentFilepath, content),
+          Deno.writeTextFile(
+            metaFilepath,
+            JSON.stringify(
+              { headers, url, createdAt: Date.now() },
+              undefined,
+              2,
+            ),
+          ),
+        ]);
       }
       return {
         content,
