@@ -36,7 +36,7 @@ async function main() {
   if (args.length == 0) {
     console.log(bold("LAND"), VERSION);
     console.log(dim("Homepage: "), "https://deno.land/x/land");
-    console.log(dim("Repo: "), "https://github.com/postui/land");
+    console.log(dim("Repo: "), "https://github.com/ije/land");
     return;
   }
 
@@ -108,12 +108,12 @@ async function main() {
     }
   }
   for (
-    const filename of Array.from([
-      "import_map",
-      "import-map",
-      "importMap",
-      "importmap",
-    ]).map((name) => `${name}.json`)
+    const filename of [
+      "import_map.json",
+      "import-map.json",
+      "importMap.json",
+      "importmap.json",
+    ]
   ) {
     if (
       directory_listing.some((entry: DirEntry) =>
