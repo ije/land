@@ -1,5 +1,5 @@
-import { parse } from "https://deno.land/std@0.136.0/flags/mod.ts";
-import { bold, dim } from "https://deno.land/std@0.136.0/fmt/colors.ts";
+import { parse } from "https://deno.land/std@0.145.0/flags/mod.ts";
+import { bold, dim } from "https://deno.land/std@0.145.0/fmt/colors.ts";
 import { cache } from "./cache.ts";
 import { VERSION } from "./version.ts";
 
@@ -197,7 +197,7 @@ async function main() {
       ...denoFlags,
       ...permissionFlags,
       `https://deno.land/x/${moduleName}@${version}/${command}`,
-      ...args.map((a) => a.toString()),
+      ...args.map((a: string) => a.toString()),
       ...appFlags,
     ],
     stdin: "inherit",

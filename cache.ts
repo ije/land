@@ -1,5 +1,5 @@
-import { ensureDir } from "https://deno.land/std@0.136.0/fs/ensure_dir.ts";
-import { join } from "https://deno.land/std@0.136.0/path/mod.ts";
+import { ensureDir } from "https://deno.land/std@0.145.0/fs/ensure_dir.ts";
+import { join } from "https://deno.land/std@0.145.0/path/mod.ts";
 
 /** download and cache remote contents */
 export async function cache(
