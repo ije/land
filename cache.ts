@@ -1,5 +1,5 @@
-import { ensureDir } from "https://deno.land/std@0.145.0/fs/ensure_dir.ts";
-import { join } from "https://deno.land/std@0.145.0/path/mod.ts";
+import { ensureDir } from "https://deno.land/std@0.217.0/fs/ensure_dir.ts";
+import { join } from "https://deno.land/std@0.217.0/path/mod.ts";
 
 /** download and cache remote contents */
 export async function cache(
@@ -90,14 +90,12 @@ function toHex(buffer: ArrayBuffer) {
 
 /** get the deno cache dir. */
 async function getDenoDir() {
-  const p = Deno.run({
-    cmd: [Deno.execPath(), "info", "--json"],
+  const p = new Deno.Command(Deno.execPath(), {
+    args: ["info", "--json"],
     stdout: "piped",
     stderr: "null",
   });
-  const output = new TextDecoder().decode(await p.output());
-  const { denoDir } = JSON.parse(output);
-  p.close();
+  const { denoDir } = await (new Response(p.spawn().stdout).json());
   if (denoDir === undefined || !await existsDir(denoDir)) {
     throw new Error(`can"t find the deno dir`);
   }

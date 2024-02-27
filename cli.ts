@@ -1,5 +1,5 @@
-import { parse } from "https://deno.land/std@0.145.0/flags/mod.ts";
-import { bold, dim } from "https://deno.land/std@0.145.0/fmt/colors.ts";
+import { parseArgs } from "https://deno.land/std@0.217.0/cli/parse_args.ts";
+import { bold, dim } from "https://deno.land/std@0.217.0/fmt/colors.ts";
 import { cache } from "./cache.ts";
 import { VERSION } from "./version.ts";
 
@@ -18,6 +18,15 @@ const denoPermissionFlags = [
   "--allow-read",
   "--allow-run",
   "--allow-write",
+  "--allow-sys",
+  "--deny-env",
+  "--deny-ffi",
+  "--deny-hrtime",
+  "--deny-net",
+  "--deny-read",
+  "--deny-run",
+  "--deny-write",
+  "--deny-sys",
 ];
 
 const supportedModuleExts = [
@@ -30,7 +39,7 @@ const supportedModuleExts = [
 ];
 
 async function main() {
-  const { _: args, ...options } = parse(
+  const { _: args, ...options } = parseArgs(
     Deno.args.filter((a) => !denoPermissionFlags.includes(a)),
   );
   if (args.length == 0) {
@@ -177,9 +186,6 @@ async function main() {
       }
     }
   }
-  if (permissionFlags.length === 0) {
-    permissionFlags.push("--prompt");
-  }
   if (!denoFlags.some((f) => f.startsWith("--location="))) {
     denoFlags.push(`--location=http://0.0.0.0`);
   }
@@ -189,23 +195,20 @@ async function main() {
     );
   }
 
-  const cmd = Deno.run({
-    cmd: [
-      Deno.execPath(),
+  const cmd = new Deno.Command(Deno.execPath(), {
+    args: [
       "run",
-      "--unstable",
       ...denoFlags,
       ...permissionFlags,
       `https://deno.land/x/${moduleName}@${version}/${command}`,
-      ...args.map((a: string) => a.toString()),
+      ...args.map((a: string | number) => a.toString()),
       ...appFlags,
     ],
     stdin: "inherit",
     stdout: "inherit",
     stderr: "inherit",
   });
-  await cmd.status();
-  cmd.close();
+  await cmd.spawn().status;
 }
 
 if (import.meta.main) {
