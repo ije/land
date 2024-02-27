@@ -5,13 +5,13 @@ Run Deno X modules without installation.
 ### Installation
 
 ```bash
-deno install -A -f -n land https://deno.land/x/land@v0.9.3/cli.ts
+deno install -A -f -n land https://deno.land/x/land@v0.10.0/cli.ts
 ```
 
 ### Usage
 
 ```bash
-# equals to `deno run https://deno.land/x/publish@latest/cli.ts `
+# equals to `deno run https://deno.land/x/publish@latest/cli.ts
 land publish
 ```
 
@@ -24,9 +24,9 @@ land publish
 By default, `land` will use the latest version of the module, you also can specify the version with [semver](https://semver.org/):
 
 ```bash
-land publish@1.1.1 start
-land publish@1.1 start  # match latest patch version
-land publish@1 start    # match latest minor version
+land publish@1.0.0 # match exact version
+land publish@1.0   # match latest patch version
+land publish@1     # match latest minor version
 ```
 
 ### Permissions
